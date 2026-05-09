@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <title>Modern React Task Manager</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+const { useState, useEffect } = React;
+
+
+const TaskItem = ({ task, onToggle, onDelete }) => {
+    return (
+        <div className="task-item">
+            <div className="task-content">
+                <label className="checkbox-container">
+                    <input 
+                        type="checkbox" 
+                        checked={task.completed} 
+                        onChange={() => onToggle(task.id)} 
+                    />
+                    <span className="checkmark"></span>
+                </label>
+                <span className={`task-text ${task.completed ? 'completed' : ''}`}>
+                    {task.text}
+                </span>
+            </div>
+            <div className="task-actions">
+                <button 
+                    className="action-btn delete" 
+                    onClick={() => onDelete(task.id)}
+                    title="Delete Task"
+                >
+                    <i className="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const TaskList = ({ tasks, onToggle, onDelete }) => {
+    if (tasks.length === 0) {
+        return (
+            <div className="empty-state">
+                <i className="fas fa-clipboard-list"></i>
+                <p>No tasks yet. Add one above!</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="task-list">
+            {tasks.map(task => (
+                <TaskItem 
+                    key={task.id} 
+                    task={task} 
+                    onToggle={onToggle} 
+                    onDelete={onDelete} 
+                />
+            ))}
+        </div>
+    );
+};
+
+const TaskForm = ({ onAdd }) => {
+    const [text, setText] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!text.trim()) return;
+        
+        onAdd(text);
+        setText('');
+    };
+
+    return (
+        <form className="task-form" onSubmit={handleSubmit}>
+            <input 
+                type="text" 
+                className="task-input" 
+                placeholder="What needs to be done?" 
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                autoFocus
+            />
+            <button type="submit" className="add-btn">
+                <i className="fas fa-plus"></i>
+            </button>
+        </form>
+    );
+};
+
+const App = () => {
+    const [tasks, setTasks] = useState([
+        { id: 1, text: 'Learn React Components', completed: true },
+        { id: 2, text: 'Build a premium UI design', completed: false },
+        { id: 3, text: 'Master glassmorphism CSS', completed: false }
+    ]);
+
+    const addTask = (text) => {
+        const newTask = {
+            id: Date.now(),
+            text,
+            completed: false
+        };
+        setTasks([...tasks, newTask]);
+    };
+
+    const toggleTask = (id) => {
+        setTasks(tasks.map(task => 
+            task.id === id ? { ...task, completed: !task.completed } : task
+        ));
+    };
+
+    const deleteTask = (id) => {
+        setTasks(tasks.filter(task => task.id !== id));
+    };
+
+    const completedCount = tasks.filter(t => t.completed).length;
+
+    return (
+        <div className="app-container">
+            <header className="app-header">
+                <h1>Task Master</h1>
+                <p>Manage your daily goals with style</p>
+            </header>
+
+            <TaskForm onAdd={addTask} />
+            
+            <TaskList 
+                tasks={tasks} 
+                onToggle={toggleTask} 
+                onDelete={deleteTask} 
+            />
+
+            <div className="task-stats">
+                <span>Total tasks: {tasks.length}</span>
+                <span>Completed: {completedCount} of {tasks.length}</span>
+            </div>
+        </div>
+    );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+    </script>
+</body>
+</html>
